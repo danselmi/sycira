@@ -1,0 +1,338 @@
+ckt:["Titel",
+[[V0,"V",[1,0],[],[],ue,[]],
+ [Ri,"R",[1,2],[],[],Ri,[]],
+ [L1,"L",[2,0],[],[],L1,[]],
+ [L2,"L",[3,0],[],[],L2,[]],
+ [Rl,"R",[3,0],[],[],Rl,[]]],
+[[K1,"K",[],[],[L1,L2],1,[]]],
+[]
+];
+/*
+circuit:
+1 title
+2 list of element-lists
+3 list of coupling elements
+4 list of nodes (empty at init)
+5 list of values (numeric) not used yet
+
+element:
+1 name
+2 type
+3 nodeslist
+4 name of controlling element
+5 name of coupled inductors
+6 value
+7 initial value
+*/
+sycira(ckt):=block([Eqsi,k,j,eqs,var,v,s,t,inode, a],
+    /* nodes suchen*/
+print("01"),
+    ckt:gennodelist(ckt),
+print("02"),
+
+    /* kopplung der Spulen*/
+    ckt:couple(ckt),
+print("03"),
+
+    /*initialize Variables*/
+    s:'s,
+    t:'t,
+    v[0]:0,
+    for k:1 thru length(ckt[4]) do
+        inode[ckt[4][k]]:0,
+    Eqsi["aux_vars"]:set(),
+    Eqsi["state_vars"]:set(),
+    Eqsi["aux_curr_eqs"]:set(),
+    Eqsi["volt_eqs"]:set(),
+    Eqsi["init_eqs"]:set(),
+    Eqsi["curr_eqs"]:set(),
+print("04"),
+
+    /*Eqsi["node_currs"]:set(),*/
+
+    /*gleichungen aufstellen*/
+    for k:1 thru length(ckt[2]) do
+    (
+        if ( intersect(set(ckt[2][k][2]), set("R","L","C","V","I","E","F","G","H")) = set(ckt[2][k][2])) then
+        (
+            SyciraGeneq(ckt[2][k][2],ckt[2][k],"ac")
+        )
+    ),
+    eqs:Eqsi["volt_eqs"],
+    for k:1 thru length(ckt[4]) do
+    eqs:union(set(inode[ckt[4][k]]=0),eqs),
+    for k:1 thru length(Eqs["curr_eqs"]) do
+    eqs:subst(rhs(Eqs["curr_eqs"][k]),lhs(Eqs["curr_eqs"][k]),eqs),
+    /*subst(x,y,z) x for y in z ,maple subs(a=b,c) b for a in c;*/
+    var:Eqsi["aux_vars"],
+    for k:1 thru length(ckt[4]) do
+    var:union(var,set(v[ckt[4][k]])),
+    var:setdifference(var,set(v[0])),
+
+    /*Ströme bestimmen, nachdem Gleichungen gelöst wurden*/
+    return([listify(eqs),listify(var)])
+);
+/*
+implemented:
+ V Voltage Source
+ I CurrentSource
+ R Resistor
+ L Inductance
+ C Capacitance
+ E VCVS Voltage controlled voltage Source
+ F CCCS Current controlled current source
+ G VCCS Voltage controlled current source
+ H CCVS Current controlled voltage source
+ K coupling between inductors
+
+nil yet implemented:
+ coupling between capacitors
+ conductances
+
+not implemented:
+has to be realised with subcircuits,
+whitch are handled by the C routine of sycira
+ D
+ J
+ M
+ Q
+ X
+ T transmission line (loss less)
+ measuring elements
+
+Units are also handled in external C routine:
+YOT		Yotta 10^24 ;special case (sycira only)
+ZET		Zetta 10^21 ;special case (sycira only)
+EXA		Exa 10^18 ;special case (sycira only)
+PET		Peta 10^15 ;special case (sycira only)
+t/T		Tera 10^12
+g/G		Giga 10^9
+MEG		Mega 10^6 ;special case
+k/K		Kilo 10^3
+m/M		milli 10^(-3)
+u/U		micro 10^(-6)
+n/N		nano 10^(-9)
+p/P		pico 10^(-12)
+f/F		femto 10^(-15)
+att		atto 10^(-18) ;(nur sycira)
+zep		zepto 10^(-21) ;(nur sycira)
+yoc		yocto 10^(-24) ;(nur sycira)
+mil     254^(-4) ; special case millivol != <> mV
+
+
+R posnode negnode val <TC=alpha<,beta>> ; T[T]=R[0](1+alpha*delta[T]+beta*(delta[T])^2
+                                        ; [alpha]=1/K, [beta]=1/(K^2)
+C posnode negnode val <IC=u(t=0)>       ;
+C posnode negnode POLY C[0] <C[1] <C[2] <... C[n]>>> <IC=u(t=0)> ; nonlinear capacitor
+                                        ; [C[n]]=1/(V^n) voltage dependant capacitor
+L posnode negnode val <IC=i(t=0)>       ;
+L posnode negnode POLY L[0] <L[1] <L[2] <... L[n]>>> <IC=u(t=0)> ; nonlinear inductor
+                                        ; [L[n]]=1/(A^n) current dependant inductor
+K L1 L2 val
+G posnode negnode posrefnode negrefnode val ; [val] = Siemens
+E posnode negnode posrefnode negrefnode val ; [val] = 1
+F posnode negnode senselementname val   ;  [val] = 1
+H posnode negnode senselementname val   ;  [val] = Ohm
+
+
+*/
+gennodelist(ckt):=block([k, nodes],
+    nodes:set(0),
+    /* check that 0 node exists */
+    for k:1 thru length(ckt[2]) do
+    (
+        nodes:union(nodes, setify(ckt[2][k][3]))
+    ),
+    ckt[4]:listify(nodes),
+    return(ckt)
+);
+couple(ckt):=block([k,j,elem1,elem2,val],
+print("21"),
+    for k:1 thru length(ckt[3]) do /* für jede kopplung k*/
+    (
+        /*print(ckt[3][k]),*/
+print("22"),
+        for j:1 thru length(ckt[2]) do /* kontrolle jedes Elements */
+        (
+            if ckt[3][k][5][1]=ckt[2][j][1] then
+            (
+                elem1:j
+                /*,print(ckt[2][j])*/
+            ),
+            if ckt[3][k][5][2]=ckt[2][j][1] then
+            (
+                elem2:j
+                /*,print(ckt[2][j])*/
+            )
+        ),
+print("23"),
+        val:ckt[3][k][6]*sqrt(ckt[2][elem1][6]*ckt[2][elem2][6]),
+        ckt[2][elem1][5]:append(ckt[2][elem1][5],[[ckt[2][elem2][1],val]]),
+        ckt[2][elem2][5]:append(ckt[2][elem2][5],[[ckt[2][elem1][1],val]])
+    ),
+    ckt[3]:[],
+    return(ckt)
+);
+
+SyciraGeneqV(element):=block([],
+    Eqsi["aux_vars"]:union(Eqsi["aux_vars"],set(i[element[1]])),
+    Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"], set(i[element[1]]=i[element[1]])),
+    Eqsi["volt_eqs"]:union(Eqsi["volt_eqs"], set(v[element[3][1]]-v[element[3][2]]=element[6])),
+    inode[element[3][1]]:inode[element[3][1]]+i[element[1]],
+    inode[element[3][2]]:inode[element[3][2]]-i[element[1]]
+);
+
+SyciraGeneqR(element):=block([i,r],
+    r:element[6],
+    if r = 0 then
+        SyciraGeneqV(element)
+    else
+    (
+        element[6]:(v[element[3][1]]-v[element[3][2]])/r,
+        SyciraGeneqI(element)
+    )
+);
+SyciraGeneqI(element):=block([],
+    Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"],set(i[element[1]]=element[6])),
+    Eqsi["curr_eqs"]:union(Eqsi["curr_eqs"],set(i[element[1]]=element[6])),
+    inode[element[3][1]]:inode[element[3][1]]+element[6],
+    inode[element[3][2]]:inode[element[3][2]]-element[6]
+);
+SyciraGeneqE(element):=block([],
+    element[6]:element[6]*(v[element[3][3]]-v[element[3][4]]),
+    SyciraGeneqV(element)
+);
+SyciraGeneqF(element):=block([],
+    element[6]:element[6]*i[element[4]],
+    SyciraGeneqI(element)
+);
+SyciraGeneqG(element):=block([],
+    element[6]:element[6]*(v[element[3][3]]-v[element[3][4]]),
+    SyciraGeneqI(element)
+);
+SyciraGeneqH(element):=block([],
+    element[6]:element[6]*i[element[4]],
+    SyciraGeneqV(element)
+);
+SyciraGeneqC(element,analysis):=block([],
+    if analysis = "dc" then
+    (
+        element[6]:0,
+        SyciraGeneqI(element)
+    )
+    else
+    (
+        if analysis="ac" then
+        (
+            /*u:v[element[1]],Q:element[6]*v,i:s*Q*/
+            Eqsi["aux_vars"]:union(Eqsi["aux_vars"],set(v[element[1]])),
+            Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"],set(i[element[1]]=s*element[6]*v[element[1]])),
+            Eqsi["volt_eqs"]:union(Eqsi["volt_eqs"],set(v[element[3][1]]-v[element[3][2]]=v[element[1]])),
+            inode[element[3][1]]:inode[element[3][1]]+s*element[6]*v[element[1]],
+            inode[element[3][2]]:inode[element[3][2]]-s*element[6]*v[element[1]]
+        )
+        else /*tran*/
+        (
+            Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"],set(i[element[1]]=diff(element[6]*v[element[1]](t),t))),
+            Eqsi["volt_eqs"]:union(Eqsi["volt_eqs"],set(v[element[3][1]]-v[element[3][2]]=v[element[1]](t) )),
+            inode[element[3][1]]:inode[element[3][1]]+diff(element[6]*v[element[1]](t),t),
+            inode[element[3][2]]:inode[element[3][2]]-diff(element[6]*v[element[1]](t),t),
+            Eqsi["aux_vars"]:union(Eqsi["aux_vars"], set(diff(v[element[1]](t),t))),
+            Eqsi["state_vars"]:union(Eqsi["state_vars"],set(v[element[1]](t))),
+            Eqsi["init_eqs"]:union(Eqsi["init_eqs"],set(ev(v[element[1]](t)=element[7],t=0)))
+        )
+    )
+);
+SyciraGeneqL(element,analysis):=block([phi,k],
+    if analysis = "dc" then
+    (
+        element[6]:0,
+        SyciraGeneqV(element)
+    )
+    else
+    (
+        if analysis = "ac" then
+        (
+            phi:i[element[1]]*element[6],
+            for k:1 thru length(element[5]) do
+            (
+                phi:phi+i[element[5][k][1]]*element[5][k][2]
+            ),
+            Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"], set(i[element[1]]=i[element[1]])),
+            Eqsi["volt_eqs"]:union(Eqsi["volt_eqs"],set(v[element[3][1]]-v[element[3][2]]=s*phi)),
+            inode[element[3][1]]:inode[element[3][1]]+i[element[1]],
+            inode[element[3][2]]:inode[element[3][2]]-i[element[1]],
+            Eqsi["aux_vars"]:union(Eqsi["aux_vars"], set(i[element[1]]))
+        )
+        else
+        (
+            phi:i[element[1]](t)*element[6],
+            for k:1 thru length(element[5]) do
+            (
+                phi:phi+i[element[5][k][1]](t)*element[5][k][2]
+            ),
+            Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"],set(i[element[1]](t)=i[element[1]](t) )),
+            Eqsi["volt_eqs"]:union(Eqsi["volt_eqs"],set(v[element[3][1]]-v[element[3][2]]=diff(phi,t))),
+            inode[element[3][1]]:inode[element[3][1]]+i[element[1]](t),
+            inode[element[3][2]]:inode[element[3][2]]-i[element[1]](t),
+            Eqsi["state_vars"]:union(Eqsi["state_vars"],set(i[element[1]](t) )),
+            Eqsi["aux_vars"]:union(Eqsi["aux_vars"],set(diff(i[element[1]](t),t))),
+            Eqsi["init_eqs"]:union(Eqsi["init_eqs"], set(ev(i[element[1]](t)=element[7], t=0)))
+        )
+    )
+);
+/*SyciraGeneq["R"](element, ana):=SyciraGeneqR(element);
+SyciraGeneq["L"](element, ana):=SyciraGeneqL(element,ana);
+SyciraGeneq["C"](element, ana):=SyciraGeneqC(element,ana);
+SyciraGeneq["E"](element, ana):=SyciraGeneqE(element);
+SyciraGeneq["F"](element, ana):=SyciraGeneqF(element);
+SyciraGeneq["G"](element, ana):=SyciraGeneqG(element);
+SyciraGeneq["H"](element, ana):=SyciraGeneqH(element);
+SyciraGeneq["V"](element, ana):=SyciraGeneqV(element);
+SyciraGeneq["I"](element, ana):=SyciraGeneqI(element);*/
+
+SyciraGeneq(elemtype, element, ana):=block([],
+    if elemtype = "R" then
+        return( SyciraGeneqR(element)),
+    if elemtype = "L" then
+        return( SyciraGeneqL(element,ana)),
+    if elemtype = "C" then
+        return( SyciraGeneqC(element,ana)),
+    if elemtype = "E" then
+        return( SyciraGeneqE(element)),
+    if elemtype = "F" then
+        return( SyciraGeneqF(element)),
+    if elemtype = "G" then
+        return( SyciraGeneqG(element)),
+    if elemtype = "H" then
+        return( SyciraGeneqH(element)),
+    if elemtype = "I" then
+        return( SyciraGeneqI(element)),
+    if elemtype = "V" then
+        return( SyciraGeneqV(element))
+
+);
+
+Test():=block([ckt],
+    batchload("C:/prj/sycira/rc-fil.syc"),
+    return(ckt)
+);
+
+polycoeff(n,coefflist, x):=block([ni,coe,res,k,j,i,ex],
+    coe:coefflist,
+    if n=1 and length(coe)=1 then
+    (
+        return(coefflist[1]*x)
+    ),
+    res:coefflist[1],
+    ni:1,
+    ex:1,
+    res:res+x^(ex),
+
+    ni:ni+1,
+    if ni=length(coefflist) then
+    (
+        return(res)
+    )
+);
+
