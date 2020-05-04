@@ -1,4 +1,4 @@
-ckt:["Titel",
+ckt:["Title",
 [[V0,"V",[1,0],[],[],ue,[]],
  [Ri,"R",[1,2],[],[],Ri,[]],
  [L1,"L",[2,0],[],[],L1,[]],
@@ -25,14 +25,12 @@ element:
 7 initial value
 */
 sycira(ckt):=block([Eqsi,k,j,eqs,var,v,s,t,inode, a],
-    /* nodes suchen*/
-print("01"),
-    ckt:gennodelist(ckt),
-print("02"),
+    /* generate list of nodes */
 
-    /* kopplung der Spulen*/
+    ckt:gennodelist(ckt),
+
+    /* coupling of inductors */
     ckt:couple(ckt),
-print("03"),
 
     /*initialize Variables*/
     s:'s,
@@ -46,11 +44,10 @@ print("03"),
     Eqsi["volt_eqs"]:set(),
     Eqsi["init_eqs"]:set(),
     Eqsi["curr_eqs"]:set(),
-print("04"),
 
     /*Eqsi["node_currs"]:set(),*/
 
-    /*gleichungen aufstellen*/
+    /* generate set of equations */
     for k:1 thru length(ckt[2]) do
     (
         if ( intersect(set(ckt[2][k][2]), set("R","L","C","V","I","E","F","G","H")) = set(ckt[2][k][2])) then
@@ -69,7 +66,6 @@ print("04"),
     var:union(var,set(v[ckt[4][k]])),
     var:setdifference(var,set(v[0])),
 
-    /*Ströme bestimmen, nachdem Gleichungen gelöst wurden*/
     return([listify(eqs),listify(var)])
 );
 /*
@@ -85,26 +81,20 @@ implemented:
  H CCVS Current controlled voltage source
  K coupling between inductors
 
-nil yet implemented:
+not yet implemented:
  coupling between capacitors
  conductances
 
 not implemented:
-has to be realised with subcircuits,
-whitch are handled by the C routine of sycira
+has to be realised with subcircuits flattened by netlist preprocessor
  D
  J
  M
  Q
  X
  T transmission line (loss less)
- measuring elements
 
 Units are also handled in external C routine:
-YOT		Yotta 10^24 ;special case (sycira only)
-ZET		Zetta 10^21 ;special case (sycira only)
-EXA		Exa 10^18 ;special case (sycira only)
-PET		Peta 10^15 ;special case (sycira only)
 t/T		Tera 10^12
 g/G		Giga 10^9
 MEG		Mega 10^6 ;special case
@@ -114,9 +104,6 @@ u/U		micro 10^(-6)
 n/N		nano 10^(-9)
 p/P		pico 10^(-12)
 f/F		femto 10^(-15)
-att		atto 10^(-18) ;(nur sycira)
-zep		zepto 10^(-21) ;(nur sycira)
-yoc		yocto 10^(-24) ;(nur sycira)
 mil     254^(-4) ; special case millivol != <> mV
 
 
@@ -133,9 +120,8 @@ G posnode negnode posrefnode negrefnode val ; [val] = Siemens
 E posnode negnode posrefnode negrefnode val ; [val] = 1
 F posnode negnode senselementname val   ;  [val] = 1
 H posnode negnode senselementname val   ;  [val] = Ohm
-
-
 */
+
 gennodelist(ckt):=block([k, nodes],
     nodes:set(0),
     /* check that 0 node exists */
@@ -146,26 +132,21 @@ gennodelist(ckt):=block([k, nodes],
     ckt[4]:listify(nodes),
     return(ckt)
 );
+
 couple(ckt):=block([k,j,elem1,elem2,val],
-print("21"),
     for k:1 thru length(ckt[3]) do /* für jede kopplung k*/
     (
-        /*print(ckt[3][k]),*/
-print("22"),
         for j:1 thru length(ckt[2]) do /* kontrolle jedes Elements */
         (
             if ckt[3][k][5][1]=ckt[2][j][1] then
             (
                 elem1:j
-                /*,print(ckt[2][j])*/
             ),
             if ckt[3][k][5][2]=ckt[2][j][1] then
             (
                 elem2:j
-                /*,print(ckt[2][j])*/
             )
         ),
-print("23"),
         val:ckt[3][k][6]*sqrt(ckt[2][elem1][6]*ckt[2][elem2][6]),
         ckt[2][elem1][5]:append(ckt[2][elem1][5],[[ckt[2][elem2][1],val]]),
         ckt[2][elem2][5]:append(ckt[2][elem2][5],[[ckt[2][elem1][1],val]])
@@ -192,12 +173,14 @@ SyciraGeneqR(element):=block([i,r],
         SyciraGeneqI(element)
     )
 );
+
 SyciraGeneqI(element):=block([],
     Eqsi["aux_curr_eqs"]:union(Eqsi["aux_curr_eqs"],set(i[element[1]]=element[6])),
     Eqsi["curr_eqs"]:union(Eqsi["curr_eqs"],set(i[element[1]]=element[6])),
     inode[element[3][1]]:inode[element[3][1]]+element[6],
     inode[element[3][2]]:inode[element[3][2]]-element[6]
 );
+
 SyciraGeneqE(element):=block([],
     element[6]:element[6]*(v[element[3][3]]-v[element[3][4]]),
     SyciraGeneqV(element)
@@ -206,14 +189,17 @@ SyciraGeneqF(element):=block([],
     element[6]:element[6]*i[element[4]],
     SyciraGeneqI(element)
 );
+
 SyciraGeneqG(element):=block([],
     element[6]:element[6]*(v[element[3][3]]-v[element[3][4]]),
     SyciraGeneqI(element)
 );
+
 SyciraGeneqH(element):=block([],
     element[6]:element[6]*i[element[4]],
     SyciraGeneqV(element)
 );
+
 SyciraGeneqC(element,analysis):=block([],
     if analysis = "dc" then
     (
@@ -243,6 +229,7 @@ SyciraGeneqC(element,analysis):=block([],
         )
     )
 );
+
 SyciraGeneqL(element,analysis):=block([phi,k],
     if analysis = "dc" then
     (
@@ -281,15 +268,7 @@ SyciraGeneqL(element,analysis):=block([phi,k],
         )
     )
 );
-/*SyciraGeneq["R"](element, ana):=SyciraGeneqR(element);
-SyciraGeneq["L"](element, ana):=SyciraGeneqL(element,ana);
-SyciraGeneq["C"](element, ana):=SyciraGeneqC(element,ana);
-SyciraGeneq["E"](element, ana):=SyciraGeneqE(element);
-SyciraGeneq["F"](element, ana):=SyciraGeneqF(element);
-SyciraGeneq["G"](element, ana):=SyciraGeneqG(element);
-SyciraGeneq["H"](element, ana):=SyciraGeneqH(element);
-SyciraGeneq["V"](element, ana):=SyciraGeneqV(element);
-SyciraGeneq["I"](element, ana):=SyciraGeneqI(element);*/
+
 
 SyciraGeneq(elemtype, element, ana):=block([],
     if elemtype = "R" then
@@ -311,28 +290,5 @@ SyciraGeneq(elemtype, element, ana):=block([],
     if elemtype = "V" then
         return( SyciraGeneqV(element))
 
-);
-
-Test():=block([ckt],
-    batchload("C:/prj/sycira/rc-fil.syc"),
-    return(ckt)
-);
-
-polycoeff(n,coefflist, x):=block([ni,coe,res,k,j,i,ex],
-    coe:coefflist,
-    if n=1 and length(coe)=1 then
-    (
-        return(coefflist[1]*x)
-    ),
-    res:coefflist[1],
-    ni:1,
-    ex:1,
-    res:res+x^(ex),
-
-    ni:ni+1,
-    if ni=length(coefflist) then
-    (
-        return(res)
-    )
 );
 
