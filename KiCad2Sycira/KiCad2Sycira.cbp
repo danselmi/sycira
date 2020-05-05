@@ -11,6 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="kicad_test.xml" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -34,7 +35,10 @@
 			<Add directory="include" />
 			<Add directory="src" />
 		</Compiler>
-		<Unit filename="main.cpp" />
+		<Unit filename="include/KiCad2Sycira.h" />
+		<Unit filename="include/tinyxml2.h" />
+		<Unit filename="src/KiCad2Sycira.cpp" />
+		<Unit filename="src/tinyxml2.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
