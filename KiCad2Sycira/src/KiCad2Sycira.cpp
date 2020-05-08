@@ -1,9 +1,7 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
 #include "KiCad2Sycira.h"
 
 using namespace tinyxml2;
+
 int main(int argc, char *argv[])
 {
     if(argc < 2)
@@ -11,7 +9,7 @@ int main(int argc, char *argv[])
         std::cerr << "no input file name given!\nusage: kicad2sycira <inputnetlist-filename> <outputnetlist-filename>";
         return -1;
     }
-
+    std::string title = "Kicad2Sycira";
     XMLDocument doc;
     doc.LoadFile(argv[1]);
     if(doc.LoadFile(argv[1]) != XML_SUCCESS)
@@ -21,70 +19,61 @@ int main(int argc, char *argv[])
     }
 
     std::vector<Element*> v_elements;
+    std::vector<std::string> numericValue;
 
-    parsElements(doc, v_elements);
-    parsNets(doc,v_elements);
-
-    for(auto a: v_elements)
-    {
-       std::cout << "name  = " << a->GetName()  << std::endl;
-       std::cout << "type  = " << a->GetType()  << std::endl;
-       std::cout << "value = " << a->Getvalue() << std::endl;
-       std::cout << "nodes ="  << a->GetNodelist() <<  std::endl;
-    }
+    parsElements(doc, v_elements, numericValue);       /// return with returnvalue if fails
+    parsNets(doc,v_elements);                          /// ^
+    controllComponentDependencies(v_elements);         /// ^
+    numericValues2Maxima(numericValue);
+    write2Maxima(title, v_elements, numericValue);
 
     std::cout << "Hello world!" << std::endl;
     return 0;
 }
 
-void parsElements(XMLDocument &doc, std::vector<Element*> &v_elements)
+int parsElements(XMLDocument &doc, std::vector<Element*> &v_elements, std::vector<std::string> &numericValue)
 {
-    std::vector<std::string>bufName;
-    std::vector<std::string>bufValue;
-    std::vector<std::string>bufType;
     XMLHandle docHandle(&doc);
-    XMLElement *levelElement = docHandle.FirstChildElement("export").FirstChildElement("components").ToElement();       ///TODO change to docHandler -> errorhandling
-    if(levelElement)
+    XMLElement *components = docHandle.FirstChildElement("export").FirstChildElement("components").ToElement();
+    if(components)
     {
-        for (XMLElement* child = levelElement->FirstChildElement("comp"); child != NULL; child = child->NextSiblingElement())
+        for (XMLHandle childHandl = docHandle.FirstChildElement("export").FirstChildElement("components").FirstChildElement("comp"); childHandl.ToElement(); childHandl = childHandl.NextSiblingElement())
         {
-             bufName.push_back(child->Attribute("ref"));
-        }
+            XMLElement *child = childHandl.ToElement();
+            std::string Name;
+            std::vector<std::string> Value;
+            std::string Type;
+            if(child)
+                Name = child->Attribute("ref");
+            for (XMLElement* grandchild = child->FirstChildElement("fields")->FirstChildElement("field"); grandchild != NULL; grandchild = grandchild->NextSiblingElement())
+            {
+//                XMLElement *child1 = grandchild.FirstChildElement("field").ToElement();  ///TODO why dosnt it work when using child instead of child1?
+                if(grandchild)
+                {
+                    Value.push_back(grandchild->GetText());
+                }
+            }
+            XMLElement *child2 = childHandl.FirstChildElement("libsource").ToElement();
+            if(child2)
+                Type = child2->Attribute("part");
+            std:: string buf =child->FirstChildElement("value")->GetText();
+            numericValue.push_back(buf);
 
-        for (XMLElement* child = levelElement->FirstChildElement(); child != NULL; child = child->NextSiblingElement())
-        {
-            XMLElement* ele = child->FirstChildElement("fields")->FirstChildElement("field");
-            bufValue.push_back(ele->GetText());
+            Element *element = new Element(Name, Type, Value);
+            v_elements.push_back(element);
         }
-
-        for (XMLElement* child = levelElement->FirstChildElement(); child != NULL; child = child->NextSiblingElement())
-        {
-            XMLElement* ele = child->FirstChildElement("value");
-            std::string numericValue(ele->GetText());
-            std::cout << "numericValue : " << numericValue << std::endl;
-        }
-
-        for (XMLElement* child = levelElement->FirstChildElement(); child != NULL; child = child->NextSiblingElement())
-        {
-             bufType.push_back(child->FirstChildElement("libsource")->Attribute("part"));
-        }
-
     }
     else
     {
+        return -3;
         std::cout << "no components found" << std::endl;
     }
-
-        for(size_t i = 0; i < bufName.size(); ++i)
-        {
-          Element *ele = new Element(bufName.at(i), bufType.at(i), bufValue.at(i));
-          v_elements.push_back(ele);
-        }
+    return 0;
 }
 
-void parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
+int parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
 {
-    std::cout << "------------------------------" << std::endl;
+    std::set<std::string> netNames;
     XMLHandle docHandle(&doc);
     XMLElement *levelElement = docHandle.FirstChildElement("export").FirstChildElement("nets").ToElement();
     if(levelElement)
@@ -92,6 +81,7 @@ void parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
 
         for (XMLElement* child = levelElement->FirstChildElement("net"); child != NULL; child = child->NextSiblingElement())
         {
+            std::string key;
             for (XMLElement* grandchild = child->FirstChildElement("node"); grandchild != NULL; grandchild = grandchild->NextSiblingElement())
             {
                 auto predicate = [&](Element *pElement){return pElement->GetName() == grandchild->Attribute("ref");};
@@ -100,16 +90,126 @@ void parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
                     std::cout << "net is referring to non existent Component" << std::endl;
 
                 Element *ele = *itr;
-                ele->SetNodelist(grandchild->Attribute("pin"));
-                std::cout << grandchild->Attribute("ref") << " " << grandchild->Attribute("pin")  << std::endl;
-            }
-        }
 
+                if( std::string nullString = "0"; child->Attribute("name") == nullString)
+                {
+                    ele->addToNodeList(nullString);
+                    netNames.insert(nullString);
+                }
+
+                else if(std::string childBuf = child->Attribute("name"); childBuf.rfind("/",0) == 0)
+                {
+                    childBuf.erase(0,1);
+                    ele->addToNodeList(childBuf);
+                    netNames.insert(childBuf);
+                }
+
+                else
+                {
+                    key = child->Attribute("code");
+                    std::set<std::string>::iterator it = netNames.find(key);
+                    if (it == netNames.end())
+                    {
+                        ele->addToNodeList(key);
+                    }
+                    else
+                    {
+                        while(it != netNames.end())
+                        {
+                            key = std::to_string(1 + std::stoi(key));
+                            it = netNames.find(key);
+                        }
+                        ele->addToNodeList(key);
+                    }
+                }
+            }
+            netNames.insert(key);
+        }
     }
     else
+    {
+       return -4;
         std::cout << "no nets found" << std::endl;
+    }
 
-    std::cout << "------------------------------" << std::endl;
+
+    return 0;
 
 }
 
+int controllComponentDependencies(const std::vector<Element*> &v_elements)
+{
+
+     auto predicate = [&](Element *pElement){return pElement->GetType() == "K";};
+                auto itr = std::find_if(v_elements.begin(), v_elements.end(), predicate);
+                if(itr == v_elements.end())
+                    std::cout << "no element Type K found" << std::endl;
+    Element *ele = *itr;
+
+    for(size_t i = 0; i < ele->GetValue().size(); ++i)
+    {
+        if( ele->GetValue().at(i).rfind("K") != 0 )
+        {
+
+            auto predicate = [&](Element *pElement){return pElement->GetName() == ele->GetValue().at(i);};
+            auto itr = std::find_if(v_elements.begin(), v_elements.end(), predicate);
+            if(itr == v_elements.end())
+            {
+                std::cout << "coupled element does not exist" << std::endl;
+                return -5;
+            }
+            else
+                std::cout << "coupled element exists! ele name = " << ele->GetValue().at(i) << std::endl;
+        }
+    }
+
+    return 0;
+}
+
+void numericValues2Maxima(std::vector<std::string> &numericValue)
+{
+    for(auto a : numericValue)
+            std::cout << "numericValue  is : " << a << std::endl;
+
+}
+
+
+//ckt:["Title",
+//[[V0,"V",[1,0],[],[],ue,[]],
+// [Ri,"R",[1,2],[],[],Ri,[]],
+// [L1,"L",[2,0],[],[],L1,[]],
+// [L2,"L",[3,0],[],[],L2,[]],
+// [Rl,"R",[3,0],[],[],Rl,[]]],
+//[[K1,"K",[],[],[L1,L2],1,[]]],
+//[],[]
+//];
+void write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue)
+{
+    std::cout << "------------------------------" << std::endl;
+
+    std::string quote = "\"";
+    std::stringstream maximaString;
+    std::stringstream elementString;
+    std::stringstream couplingString;
+    maximaString << "ckt:[" << maximaTitle << ",[";
+    for(size_t i = 0; i < v_elements.size(); ++i)
+    {
+        if(v_elements.at(i)->GetType() != "K")
+        {
+            elementString << "[" << v_elements.at(i)->GetName()
+                            << quote << v_elements.at(i)->GetType() << quote
+                            << "," "[" << v_elements.at(i)->GetNodelist().at(0) << "," << v_elements.at(i)->GetNodelist().at(1)
+                            << "]" ",[]," << v_elements.at(i)->GetValue().back() << ",[]],\n";
+        }
+        else
+        {
+          couplingString << "[" << v_elements.at(i)->GetName()
+                            << quote << v_elements.at(i)->GetType() << quote
+                            << ",[],[],[" << v_elements.at(i)->GetValue().at(0) << "," << v_elements.at(i)->GetValue().at(1) << "]" << ",[]],\n";
+        }
+
+    }
+    maximaString << elementString.str() << couplingString.str() << "[]];";
+    std::cout  << maximaString.str() << std::endl;
+
+}
