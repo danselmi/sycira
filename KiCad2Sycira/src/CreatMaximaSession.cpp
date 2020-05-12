@@ -1,7 +1,7 @@
 #include <zip.h>
 #include "CreatMaximaSession.h"
 
-int createMaximaSession(const std::string &sessionName, const std::string &circuitFileName, const std::stringstream &data)
+int createMaximaSession(const std::string &sessionName, const std::string &circuitFileName, const std::string &data)
 {
     if(checkSessionExists(sessionName))
     {
@@ -13,7 +13,7 @@ int createMaximaSession(const std::string &sessionName, const std::string &circu
         createMinimalSession(sessionName, circuitFileName);
     }
 
-     return 0;
+    return 0;
 }
 
 bool checkSessionExists(const std::string & sessionName)
@@ -28,11 +28,19 @@ bool checkSessionExists(const std::string & sessionName)
         return false;
 }
 
-int createKicad2SyciraMaximaFile(const std::string &circuitFileName, const std::stringstream &data)
+int createKicad2SyciraMaximaFile(const std::string &circuitFileName, const std::string &data)
 {
     std::ofstream outfile(circuitFileName);
-    outfile << data.str();
-    outfile.clear();
+    if (outfile.is_open())
+    {
+        outfile << data;
+        outfile.close();
+    }
+    else
+    {
+        std::cerr << "failed to open \"" << circuitFileName << "\" for writing circuit\n";
+        return -1;
+    }
 
     return 0;
 }
@@ -51,7 +59,8 @@ int createMinimalSession(const std::string &sessionName, const std::string &circ
     if (index < 0)
     {
         zip_source_free(source1);
-        return -3;    }
+        return -3;
+    }
     else
         zip_set_file_compression(zip, index, ZIP_CM_STORE, 0);
 
@@ -86,7 +95,8 @@ int createMinimalSession(const std::string &sessionName, const std::string &circ
     if (index < 0)
     {
         zip_source_free(source2);
-        return -4;    }
+        return -4;
+    }
     else
         zip_set_file_compression(zip, index, ZIP_CM_STORE, 0);
 
@@ -132,7 +142,8 @@ int createMinimalSession(const std::string &sessionName, const std::string &circ
     if (index < 0)
     {
         zip_source_free(source3);
-        return -5;    }
+        return -5;
+    }
     else
         zip_set_file_compression(zip, index, ZIP_CM_STORE, 0);
 

@@ -5,7 +5,6 @@
 #include <vector>
 #include <algorithm>
 #include <set>
-#include <sstream>
 #include <array>
 #include "tinyxml2.h"
 #include "CreatMaximaSession.h"
@@ -16,8 +15,9 @@ int parsElements(tinyxml2::XMLDocument &doc, std::vector<Element*> &v_elements);
 int parsNets(tinyxml2::XMLDocument &doc, std::vector<Element*> &v_elements);
 int controllComponentDependencies(const std::vector<Element*> &v_elements);
 void numericValues2Maxima(std::vector<std::string> &numericValue);
+std::string genBaseFileName(const std::string &fullfilename);
 
-std::stringstream write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue);
+std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue);
 
 class Element
 {

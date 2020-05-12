@@ -4,7 +4,7 @@ using namespace tinyxml2;
 
 int main(int argc, char *argv[])
 {
-    if(argc < 2)
+    if(argc < 3)
     {
         std::cerr << "no input file name given!\nusage: kicad2sycira <inputnetlist-filename> <outputnetlist-filename>";
         return -1;
@@ -18,20 +18,22 @@ int main(int argc, char *argv[])
         return -2;
     }
 
+    std::string outFileName = genBaseFileName(argv[2]);
+
     std::vector<Element*> v_elements;
     std::vector<std::string> numericValue;
     int drc = 0;
     drc = parsElements(doc, v_elements);
     if( drc == 0 )
     {
-        drc = parsNets(doc,v_elements);
+        drc = parsNets(doc, v_elements);
         if(drc == 0)
         {
             drc = controllComponentDependencies(v_elements);
             if(drc == 0)
             {
                 numericValues2Maxima(numericValue);
-                createMaximaSession(title +".wxmx", title + ".mac", write2Maxima(title, v_elements, numericValue));
+                createMaximaSession(outFileName + ".wxmx", outFileName + ".mac", write2Maxima(title, v_elements, numericValue));
             }
             else
                 return drc;
@@ -139,7 +141,6 @@ int parsElements(XMLDocument &doc, std::vector<Element*> &v_elements)
 
 int parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
 {
-    std::set<std::string> netNames;
     XMLHandle docHandle(&doc);
     XMLElement *nets = docHandle.FirstChildElement("export").FirstChildElement("nets").ToElement();
     if(!nets)
@@ -159,17 +160,12 @@ int parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
         else if(std::string childBuf = net->Attribute("name"); childBuf.find("/", 0) == 0)
         {
             childBuf.erase(0,1);
-            if(netNames.find(childBuf) != netNames.end())
-            {
-                /// net already in list of nets! what to do now????
-            }
             netName = quote + childBuf + quote;
         }
         else
         {
             netName =  quote + net->Attribute("name") + quote;
         }
-        netNames.insert(netName);
 
         for (XMLElement* node = net->FirstChildElement("node"); node; node = node->NextSiblingElement())
         {
@@ -236,46 +232,55 @@ void numericValues2Maxima(std::vector<std::string> &numericValue)
 
 }
 
-std::stringstream write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue)
+std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue)
 {
-    std::cout << "------------------------------" << std::endl;
-
     const std::string quote = "\"";
-    std::stringstream maximaString;
-    std::stringstream elementString;
-    std::stringstream couplingString;
+    std::string elementString;
+    std::string couplingString;
     bool firstElem = true;
     bool firstCoupl = true;
-    maximaString << "ckt:[\"" << maximaTitle << "\",\n";
+    std::string maximaString = "ckt:[\"" + maximaTitle + "\",\n";
     for(size_t i = 0; i < v_elements.size(); ++i)
     {
         Element *elem = v_elements.at(i);
         if(elem->GetType() != "K")
         {
             if(!firstElem)
-                elementString << ",\n";
-            elementString << "[" << elem->GetName() << "," << quote << elem->GetType() << quote;
-            elementString << ",[" << elem->GetNodelist().at(0) << ", " << elem->GetNodelist().at(1);
+                elementString += ",\n";
+            elementString += "[" + elem->GetName() + "," + quote + elem->GetType() + quote;
+            elementString += ",[" + elem->GetNodelist().at(0) + ", " + elem->GetNodelist().at(1);
             if(elem->GetType() == "E" || elem->GetType() == "G")
-                elementString << ", " << elem->GetNodelist().at(2) << ", " << elem->GetNodelist().at(3);
-            elementString << "], [";
+                elementString += ", " + elem->GetNodelist().at(2) + ", " + elem->GetNodelist().at(3);
+            elementString += "], [";
             if(elem->GetType() == "F" || elem->GetType() == "H")
-                elementString << elem->GetControllingElement();
-            elementString << "], [], " << elem->GetValue() << ", []]";
+                elementString += elem->GetControllingElement();
+            elementString += "], [], " + elem->GetValue() + ", []]";
             firstElem = false;
         }
         else
         {
             if(!firstCoupl)
-                couplingString << ",\n";
-            couplingString << "[" << elem->GetName() << "," << quote << elem->GetType() << quote;
-            couplingString << ",[],[],[" << elem->GetCoupledInductors().at(0) << ", " << elem->GetCoupledInductors().at(1) << "], " << elem->GetValue() << ", []]";
+                couplingString += ",\n";
+            couplingString += "[" + elem->GetName() + "," + quote + elem->GetType() + quote;
+            couplingString += ",[],[],[" + elem->GetCoupledInductors().at(0) + ", " + elem->GetCoupledInductors().at(1) + "], " + elem->GetValue() + ", []]";
             firstCoupl = false;
         }
 
     }
-    maximaString << "[" << elementString.str() << "],\n[" << couplingString.str() << "],\n[], []];";
-    std::cout  << maximaString.str() << std::endl;
+    maximaString += "[" + elementString + "],\n[" + couplingString + "],\n[], []];";
+    std::cout  << maximaString << std::endl;
 
     return maximaString;
 }
+
+std::string genBaseFileName(const std::string &fullfilename)
+{
+    std::string basename = fullfilename;
+    if(fullfilename.rfind(".mac") == fullfilename.length()-4)
+        return fullfilename.substr(0, fullfilename.length()-4);
+    if(fullfilename.rfind(".wxmx") == fullfilename.length()-5)
+        return fullfilename.substr(0, fullfilename.length()-5);
+
+    return fullfilename;
+}
+
