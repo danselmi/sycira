@@ -13,14 +13,14 @@ sudo dnf install kicad
  
  - TinyXml2
 ```
-  sudo dnf install tinyxml2 tinyxml2-devel
- ```   
+sudo dnf install tinyxml2 tinyxml2-devel
+```   
 
  - Zip
 
     
 ```
-    sudo dnf install zip
+sudo dnf install zip
 ```
     
 
