@@ -42,6 +42,7 @@ After successfully building the KiCad2Sycira project open kicad and go to Genera
 
  ![add KiCad2Sycira plugin](images/GenerateNetlist.png)
 
+![Netlist command](images/NetlistCommand.PNG)
 Click Addd Plugin and choose a plugin name.
 As Netlist command use the following:
 ```
