@@ -326,7 +326,7 @@ std::string write2Maxima( const std::string &maximaTitle, const std::vector<Elem
             couplingString += ",[],[],[" + elem->GetCoupledInductors().at(0) + ", " + elem->GetCoupledInductors().at(1) + "], " + elem->GetValue() + ", []]";
             firstCoupl = false;
         }
-        if(i != v_elements.size())
+        if(i != v_elements.size()-1)
             numericValueString += "" + elem->GetNumericValue() += ",";
         else
             numericValueString += "" + elem->GetNumericValue();
