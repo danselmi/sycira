@@ -40,7 +40,7 @@ To use the KiCad2Sycira plugin simply build it with the corresponding Makefile.
 
 After successfully building the KiCad2Sycira project open kicad and go to Generate Netlist
 
- ![add KiCad2Sycira plugin] (images/GenerateNetlist.png)
+ ![add KiCad2Sycira plugin](images/GenerateNetlist.png)
 
 Click Addd Plugin and choose a plugin name.
 As Netlist command use the following:
@@ -49,7 +49,7 @@ As Netlist command use the following:
 ```
 The final step is to add the Sycira kicad components library 
 
- ![add Sycira Library] (images/AddLibraries.png)
+ ![add Sycira Library](images/AddLibraries.png)
 
 click on Preferences in the menubar -> Symbol Lobraries -> Browse Libraries and then add the sycira.lib file.
 
