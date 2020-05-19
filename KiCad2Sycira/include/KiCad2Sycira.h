@@ -6,7 +6,8 @@
 #include <algorithm>
 #include <set>
 #include <array>
-#include "tinyxml2.h"
+#include <sstream>
+#include <tinyxml2.h>
 #include "CreatMaximaSession.h"
 
 class Element;
@@ -14,10 +15,13 @@ class Element;
 int parsElements(tinyxml2::XMLDocument &doc, std::vector<Element*> &v_elements);
 int parsNets(tinyxml2::XMLDocument &doc, std::vector<Element*> &v_elements);
 int controllComponentDependencies(const std::vector<Element*> &v_elements);
-void numericValues2Maxima(std::vector<std::string> &numericValue);
 std::string genBaseFileName(const std::string &fullfilename);
 
-std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue);
+std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements);
+
+void numericValues2Maxima(std::vector<Element*> &v_elements);
+std::string getSiPrefix(std::string &siPrefix);
+std::string removeLetters(std::string &value);
 
 class Element
 {
@@ -47,6 +51,8 @@ public:
     const std::string &GetType()const{return elementType_;}
     const std::string &GetValue()const{return value_;}
     const std::string &GetControllingElement()const{return controllingElement_;}
+    const std::string &GetNumericValue()const{return numericValue_;}
+    void numericToMaxima(std::string numericaValueMaxima) {numericValue_ = numericaValueMaxima;}
     void addToNodeList(std::string node, size_t idx) {nodeList_[idx] = node;}
     const std::array<std::string, 4> &GetNodelist(){return nodeList_ ;}
     const std::array<std::string, 2> &GetCoupledInductors(){return coupledInductors_ ;}
