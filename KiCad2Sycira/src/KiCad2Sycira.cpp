@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
     std::string outFileName = genBaseFileName(argv[2]);
 
     std::vector<Element*> v_elements;
-    std::vector<std::string> numericValue;
     int drc = 0;
     drc = parsElements(doc, v_elements);
     if( drc == 0 )
@@ -32,8 +31,8 @@ int main(int argc, char *argv[])
             drc = controllComponentDependencies(v_elements);
             if(drc == 0)
             {
-                numericValues2Maxima(numericValue);
-                createMaximaSession(outFileName + ".wxmx", outFileName + ".mac", write2Maxima(title, v_elements, numericValue));
+                numericValues2Maxima(v_elements);
+                createMaximaSession(outFileName + ".wxmx", outFileName + ".mac", write2Maxima(title, v_elements));
             }
             else
                 return drc;
@@ -225,18 +224,80 @@ int controllComponentDependencies(const std::vector<Element*> &v_elements)
     return 0;
 }
 
-void numericValues2Maxima(std::vector<std::string> &numericValue)
+void numericValues2Maxima(std::vector<Element*> &v_elements)
 {
-    for(auto a : numericValue)
-            std::cout << "numericValue  is : " << a << std::endl;
+    for(auto a : v_elements)
+    {
+        std::string siPrefix = a->GetNumericValue();
+        std::string value = a->GetNumericValue();
+        siPrefix = getSiPrefix(siPrefix);
+        value = removeLetters(value);
+        a->numericToMaxima(value + "*" + siPrefix);
+        std::cout  << "numeric values : " << a->GetNumericValue() << std::endl;
+    }
+}
+
+std::string getSiPrefix(std::string &siPrefix)
+{
+    for (size_t i = 0; i < siPrefix.size(); i++)
+    {
+        if ((siPrefix[i] < 'A' || siPrefix[i] > 'Z') && (siPrefix[i] < 'a' || siPrefix[i] > 'z'))
+        {
+            siPrefix.erase(i, 1);
+            --i;
+        }
+    }
+    if(!siPrefix.empty())
+    {
+        if(siPrefix == "f" || siPrefix == "F")
+            return "10e-15";
+        if(siPrefix == "p" || siPrefix == "P")
+            return "10e-12";
+        if(siPrefix == "n" || siPrefix == "N")
+            return "10e-9";
+        if(siPrefix == "u" || siPrefix == "U")
+            return "10e-6";
+        if(siPrefix == "m" || siPrefix == "M")
+            return "10e-3";
+        if(siPrefix == "k" || siPrefix == "K")
+            return "10e3";
+        if(siPrefix == "meg" || siPrefix == "MEG")
+            return "10e6";
+        if(siPrefix == "g" || siPrefix == "G")
+            return "10e9";
+        if(siPrefix == "t" || siPrefix == "T")
+            return "10e12";
+    }
+
+    return "10e0";
 
 }
 
-std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements, const std::vector<std::string> &numericValue)
+std::string removeLetters(std::string &value)
+{
+    std::stringstream valueStream;
+    std::string removedLetters;
+    valueStream << value;
+
+    std::string temp;
+    int isNumber;
+    while (!valueStream.eof())
+    {
+        valueStream >> temp;
+
+        if (std::stringstream(temp) >> isNumber)
+            removedLetters = std::to_string(isNumber);
+        temp = "";
+    }
+    return removedLetters;
+}
+
+std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements)
 {
     const std::string quote = "\"";
     std::string elementString;
     std::string couplingString;
+    std::string numericValueString;
     bool firstElem = true;
     bool firstCoupl = true;
     std::string maximaString = "ckt:[\"" + maximaTitle + "\",\n";
@@ -265,9 +326,13 @@ std::string write2Maxima( const std::string &maximaTitle, const std::vector<Elem
             couplingString += ",[],[],[" + elem->GetCoupledInductors().at(0) + ", " + elem->GetCoupledInductors().at(1) + "], " + elem->GetValue() + ", []]";
             firstCoupl = false;
         }
+        if(i != v_elements.size())
+            numericValueString += "" + elem->GetNumericValue() += ",";
+        else
+            numericValueString += "" + elem->GetNumericValue();
 
     }
-    maximaString += "[" + elementString + "],\n[" + couplingString + "],\n[], []];";
+    maximaString += "[" + elementString + "],\n[" + couplingString + "],\n[], [" + numericValueString + "]];";
     std::cout  << maximaString << std::endl;
 
     return maximaString;
