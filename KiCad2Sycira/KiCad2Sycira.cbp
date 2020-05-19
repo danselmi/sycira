@@ -11,12 +11,13 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="kicad_test.xml" />
+				<Option parameters="kicad_test.xml blabla.mac" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
 					<Add library="zip" />
+					<Add library="tinyxml2" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -24,19 +25,19 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="kicad_test.xml" />
+				<Option parameters="kicad_test.xml blabla.mac" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="zip" />
+					<Add library="tinyxml2" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=c++1z" />
 			<Add option="-fexceptions" />
 			<Add option="-std=c++17" />
 			<Add directory="include" />
@@ -44,10 +45,8 @@
 		</Compiler>
 		<Unit filename="include/CreatMaximaSession.h" />
 		<Unit filename="include/KiCad2Sycira.h" />
-		<Unit filename="include/tinyxml2.h" />
 		<Unit filename="src/CreatMaximaSession.cpp" />
 		<Unit filename="src/KiCad2Sycira.cpp" />
-		<Unit filename="src/tinyxml2.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
