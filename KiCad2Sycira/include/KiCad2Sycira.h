@@ -52,8 +52,8 @@ public:
     const std::string &GetValue()const{return value_;}
     const std::string &GetControllingElement()const{return controllingElement_;}
     const std::string &GetNumericValue()const{return numericValue_;}
-    void numericToMaxima(std::string numericaValueMaxima) {numericValue_ = numericaValueMaxima;}
-    void addToNodeList(std::string node, size_t idx) {nodeList_[idx] = node;}
+    void numericToMaxima(const std::string &numericaValueMaxima) {numericValue_ = numericaValueMaxima;}
+    void addToNodeList(const std::string &node, size_t idx) {nodeList_[idx] = node;}
     const std::array<std::string, 4> &GetNodelist(){return nodeList_ ;}
     const std::array<std::string, 2> &GetCoupledInductors(){return coupledInductors_ ;}
 

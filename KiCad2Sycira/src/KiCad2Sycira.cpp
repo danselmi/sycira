@@ -340,7 +340,6 @@ std::string write2Maxima( const std::string &maximaTitle, const std::vector<Elem
 
 std::string genBaseFileName(const std::string &fullfilename)
 {
-    std::string basename = fullfilename;
     if(fullfilename.rfind(".mac") == fullfilename.length()-4)
         return fullfilename.substr(0, fullfilename.length()-4);
     if(fullfilename.rfind(".wxmx") == fullfilename.length()-5)
