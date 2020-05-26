@@ -41,7 +41,6 @@
 			<Add option="-fexceptions" />
 			<Add option="-std=c++17" />
 			<Add directory="include" />
-			<Add directory="src" />
 		</Compiler>
 		<Unit filename="include/CreatMaximaSession.h" />
 		<Unit filename="include/KiCad2Sycira.h" />
