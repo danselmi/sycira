@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
         return -5;
     createMaximaSession(outFileName + ".wxmx", outFileName + ".mac", write2Maxima(title, v_elements));
 
-    std::cout << "Hello world!" << std::endl;
     return 0;
 }
 
@@ -131,7 +130,7 @@ int parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
     XMLElement *nets = docHandle.FirstChildElement("export").FirstChildElement("nets").ToElement();
     if(!nets)
     {
-        std::cout << "no nets found" << std::endl;
+        std::cerr << "no nets found" << std::endl;
         return -10;
     }
 
@@ -192,7 +191,7 @@ int controllComponentDependencies(const std::vector<Element*> &v_elements)
             auto itr2 = std::find_if(v_elements.begin(), v_elements.end(), isCoupledL2);
             if (itr1 == v_elements.end() || itr2 == v_elements.end())
             {
-                std::cout << "elements coupled by element \"" << ele->GetName() << "\" not found!\n";
+                std::cerr << "elements coupled by element \"" << ele->GetName() << "\" not found!\n";
                 return -10;
             }
         }
@@ -203,7 +202,7 @@ int controllComponentDependencies(const std::vector<Element*> &v_elements)
             auto itr = std::find_if(v_elements.begin(), v_elements.end(), isControllingElement);
             if (itr == v_elements.end())
             {
-                std::cout << "controlling element for element \"" << ele->GetName() << "\" not found!\n";
+                std::cerr << "controlling element for element \"" << ele->GetName() << "\" not found!\n";
                 return -20;
             }
         }
