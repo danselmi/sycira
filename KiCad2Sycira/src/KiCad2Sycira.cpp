@@ -159,7 +159,7 @@ int parsNets(XMLDocument &doc, std::vector<Element*> &v_elements)
         else if(std::string childBuf = net->Attribute("name"); childBuf.find("/", 0) == 0)
         {
             childBuf.erase(0,1);
-            netName = quote + childBuf + quote;
+            netName = childBuf;
         }
         else
         {
