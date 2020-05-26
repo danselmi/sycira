@@ -131,7 +131,7 @@ int createMinimalSession(const std::string &sessionName, const std::string &circ
     "<cell type=\"code\">\n"
     "<input>\n"
     "<editor type=\"input\">\n"
-    "<line>solve(sys[1],sys[2]);</line>\n"
+    "<line>sol:solve(sys[1],sys[2]);</line>\n"
     "</editor>\n"
     "</input>\n"
     "</cell>\n\n"
