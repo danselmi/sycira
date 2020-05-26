@@ -21,27 +21,14 @@ int main(int argc, char *argv[])
     std::string outFileName = genBaseFileName(argv[2]);
 
     std::vector<Element*> v_elements;
-    int drc = 0;
-    drc = parsElements(doc, v_elements);
-    if( drc == 0 )
-    {
-        drc = parsNets(doc, v_elements);
-        if(drc == 0)
-        {
-            drc = controllComponentDependencies(v_elements);
-            if(drc == 0)
-            {
-                numericValues2Maxima(v_elements);
-                createMaximaSession(outFileName + ".wxmx", outFileName + ".mac", write2Maxima(title, v_elements));
-            }
-            else
-                return drc;
-        }
-        else
-            return drc;
-    }
-    else
-        return drc;
+
+    if (parsElements(doc, v_elements))
+        return -3;
+    if (parsNets(doc, v_elements))
+        return -4;
+    if (controllComponentDependencies(v_elements))
+        return -5;
+    createMaximaSession(outFileName + ".wxmx", outFileName + ".mac", write2Maxima(title, v_elements));
 
     std::cout << "Hello world!" << std::endl;
     return 0;
@@ -125,7 +112,7 @@ int parsElements(XMLDocument &doc, std::vector<Element*> &v_elements)
         std::string numericValue;
         XMLElement *nval = comp->FirstChildElement("value");
         if(nval)
-            numericValue = nval->GetText();
+            numericValue = numericValues2Maxima(nval->GetText());
 
         if(!senseElement.empty()) // H or F
             v_elements.push_back(new Element(name, type, value, numericValue, senseElement));
@@ -224,72 +211,57 @@ int controllComponentDependencies(const std::vector<Element*> &v_elements)
     return 0;
 }
 
-void numericValues2Maxima(std::vector<Element*> &v_elements)
+//shameless stolen from https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
+static inline std::string &ltrim(std::string &s)
 {
-    for(auto a : v_elements)
-    {
-        std::string siPrefix = a->GetNumericValue();
-        std::string value = a->GetNumericValue();
-        siPrefix = getSiPrefix(siPrefix);
-        value = removeLetters(value);
-        a->numericToMaxima(a->GetName() + " = " + value + "*" + siPrefix);
-        std::cout  << "numeric values : " << a->GetNumericValue() << std::endl;
-    }
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
 }
 
-std::string getSiPrefix(std::string &siPrefix)
+std::string numericValues2Maxima(std::string numValString)
 {
-    for (size_t i = 0; i < siPrefix.size(); i++)
+    numValString = ltrim(numValString);
+
+    size_t unitPos;
+    try
     {
-        if ((siPrefix[i] < 'A' || siPrefix[i] > 'Z') && (siPrefix[i] < 'a' || siPrefix[i] > 'z'))
-        {
-            siPrefix.erase(i, 1);
-            --i;
-        }
+        std::stod(numValString, &unitPos);
     }
-    if(!siPrefix.empty())
+    catch (const std::invalid_argument& ia)
     {
-        if(siPrefix == "f" || siPrefix == "F")
-            return "10e-15";
-        if(siPrefix == "p" || siPrefix == "P")
-            return "10e-12";
-        if(siPrefix == "n" || siPrefix == "N")
-            return "10e-9";
-        if(siPrefix == "u" || siPrefix == "U")
-            return "10e-6";
-        if(siPrefix == "m" || siPrefix == "M" || siPrefix == "mil" || siPrefix == "MIL")
-            return "10e-3";
-        if(siPrefix == "k" || siPrefix == "K")
-            return "10e3";
-        if(siPrefix == "meg" || siPrefix == "MEG")
-            return "10e6";
-        if(siPrefix == "g" || siPrefix == "G")
-            return "10e9";
-        if(siPrefix == "t" || siPrefix == "T")
-            return "10e12";
+        unitPos = 0;
     }
-    return "10e0";
-
-}
-
-std::string removeLetters(std::string &value)
-{
-    std::stringstream valueStream;
-    std::string removedLetters;
-    valueStream << value;
-
-    std::string temp;
-    int isNumber;
-    while (!valueStream.eof())
+    catch (const std::out_of_range& oor)
     {
-        valueStream >> temp;
-
-        if (std::stringstream(temp) >> isNumber)
-            removedLetters = std::to_string(isNumber);
-        if(isNumber == 0)
-         removedLetters = value;
+        unitPos = 0;
     }
-    return removedLetters;
+
+    if (unitPos)
+    {
+        std::string maximaValueString = "(" + numValString.substr(0, unitPos) + ")";
+
+        std::string unitString = numValString.substr(unitPos);
+        unitString = ltrim(unitString);
+
+        std::transform(unitString.begin(), unitString.end(), unitString.begin(),
+            [](unsigned char c){ return std::tolower(c); });
+
+        if      (unitString.rfind("mil", 0) == 0) maximaValueString += "*25.4e-6";
+        else if (unitString.rfind("meg", 0) == 0) maximaValueString += "*1e6";
+        else if (unitString.rfind("f", 0) == 0)   maximaValueString += "*1e-15";
+        else if (unitString.rfind("p", 0) == 0)   maximaValueString += "*1e-12";
+        else if (unitString.rfind("n", 0) == 0)   maximaValueString += "*1e-9";
+        else if (unitString.rfind("u", 0) == 0)   maximaValueString += "*1e-6";
+        else if (unitString.rfind("m", 0) == 0)   maximaValueString += "*1e-3";
+        else if (unitString.rfind("k", 0) == 0)   maximaValueString += "*1e3";
+        else if (unitString.rfind("g", 0) == 0)   maximaValueString += "*1e9";
+        else if (unitString.rfind("t", 0) == 0)   maximaValueString += "*1e12";
+
+        return maximaValueString;
+    }
+    else
+        return std::string("");
 }
 
 std::string write2Maxima( const std::string &maximaTitle, const std::vector<Element*> &v_elements)
@@ -326,10 +298,13 @@ std::string write2Maxima( const std::string &maximaTitle, const std::vector<Elem
             couplingString += ",[],[],[" + elem->GetCoupledInductors().at(0) + ", " + elem->GetCoupledInductors().at(1) + "], " + elem->GetValue() + ", []]";
             firstCoupl = false;
         }
-        if(i != v_elements.size()-1)
-            numericValueString += "" + elem->GetNumericValue() += ",";
-        else
-            numericValueString += "" + elem->GetNumericValue();
+        const std::string &numStr = elem->GetNumericValue();
+        if(!numStr.empty())
+        {
+            if(!numericValueString.empty())
+                numericValueString += ", ";
+            numericValueString += elem->GetName() + "=" + numStr;
+        }
 
     }
     maximaString += "[" + elementString + "],\n[" + couplingString + "],\n[], [" + numericValueString + "]];";
