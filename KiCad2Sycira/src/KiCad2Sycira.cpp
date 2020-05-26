@@ -232,7 +232,7 @@ void numericValues2Maxima(std::vector<Element*> &v_elements)
         std::string value = a->GetNumericValue();
         siPrefix = getSiPrefix(siPrefix);
         value = removeLetters(value);
-        a->numericToMaxima(value + "*" + siPrefix);
+        a->numericToMaxima(a->GetName() + " = " + value + "*" + siPrefix);
         std::cout  << "numeric values : " << a->GetNumericValue() << std::endl;
     }
 }
@@ -257,7 +257,7 @@ std::string getSiPrefix(std::string &siPrefix)
             return "10e-9";
         if(siPrefix == "u" || siPrefix == "U")
             return "10e-6";
-        if(siPrefix == "m" || siPrefix == "M")
+        if(siPrefix == "m" || siPrefix == "M" || siPrefix == "mil" || siPrefix == "MIL")
             return "10e-3";
         if(siPrefix == "k" || siPrefix == "K")
             return "10e3";
@@ -268,7 +268,6 @@ std::string getSiPrefix(std::string &siPrefix)
         if(siPrefix == "t" || siPrefix == "T")
             return "10e12";
     }
-
     return "10e0";
 
 }
@@ -287,7 +286,8 @@ std::string removeLetters(std::string &value)
 
         if (std::stringstream(temp) >> isNumber)
             removedLetters = std::to_string(isNumber);
-        temp = "";
+        if(isNumber == 0)
+         removedLetters = value;
     }
     return removedLetters;
 }
