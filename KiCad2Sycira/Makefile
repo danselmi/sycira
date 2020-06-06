@@ -27,7 +27,7 @@ LIB_DEBUG = $(LIB)-lzip -ltinyxml2
 LDFLAGS_DEBUG = $(LDFLAGS)
 OBJDIR_DEBUG = obj/Debug
 DEP_DEBUG = 
-OUT_DEBUG = bin/Debug/KiCad2Sycira
+OUT_DEBUG = bin/Debug/KiCad2sycira
 
 INC_RELEASE = $(INC)
 CFLAGS_RELEASE = $(CFLAGS) -O2
@@ -38,11 +38,11 @@ LIB_RELEASE = $(LIB)-lzip -ltinyxml2
 LDFLAGS_RELEASE = $(LDFLAGS) -s
 OBJDIR_RELEASE = obj/Release
 DEP_RELEASE = 
-OUT_RELEASE = bin/Release/KiCad2Sycira
+OUT_RELEASE = bin/Release/KiCad2sycira
 
-OBJ_DEBUG = $(OBJDIR_DEBUG)/src/CreatMaximaSession.o $(OBJDIR_DEBUG)/src/KiCad2Sycira.o
+OBJ_DEBUG = $(OBJDIR_DEBUG)/src/CreatMaximaSession.o $(OBJDIR_DEBUG)/src/KiCad2sycira.o
 
-OBJ_RELEASE = $(OBJDIR_RELEASE)/src/CreatMaximaSession.o $(OBJDIR_RELEASE)/src/KiCad2Sycira.o
+OBJ_RELEASE = $(OBJDIR_RELEASE)/src/CreatMaximaSession.o $(OBJDIR_RELEASE)/src/KiCad2sycira.o
 
 all: debug release
 
@@ -62,8 +62,8 @@ out_debug: before_debug $(OBJ_DEBUG) $(DEP_DEBUG)
 $(OBJDIR_DEBUG)/src/CreatMaximaSession.o: src/CreatMaximaSession.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/CreatMaximaSession.cpp -o $(OBJDIR_DEBUG)/src/CreatMaximaSession.o
 
-$(OBJDIR_DEBUG)/src/KiCad2Sycira.o: src/KiCad2Sycira.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/KiCad2Sycira.cpp -o $(OBJDIR_DEBUG)/src/KiCad2Sycira.o
+$(OBJDIR_DEBUG)/src/KiCad2sycira.o: src/KiCad2sycira.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/KiCad2sycira.cpp -o $(OBJDIR_DEBUG)/src/KiCad2sycira.o
 
 clean_debug: 
 	rm -f $(OBJ_DEBUG) $(OUT_DEBUG)
@@ -84,8 +84,8 @@ out_release: before_release $(OBJ_RELEASE) $(DEP_RELEASE)
 $(OBJDIR_RELEASE)/src/CreatMaximaSession.o: src/CreatMaximaSession.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CreatMaximaSession.cpp -o $(OBJDIR_RELEASE)/src/CreatMaximaSession.o
 
-$(OBJDIR_RELEASE)/src/KiCad2Sycira.o: src/KiCad2Sycira.cpp
-	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/KiCad2Sycira.cpp -o $(OBJDIR_RELEASE)/src/KiCad2Sycira.o
+$(OBJDIR_RELEASE)/src/KiCad2sycira.o: src/KiCad2sycira.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/KiCad2sycira.cpp -o $(OBJDIR_RELEASE)/src/KiCad2sycira.o
 
 clean_release: 
 	rm -f $(OBJ_RELEASE) $(OUT_RELEASE)

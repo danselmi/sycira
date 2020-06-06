@@ -1,4 +1,4 @@
-#include "KiCad2Sycira.h"
+#include "KiCad2sycira.h"
 
 using namespace tinyxml2;
 
@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
         std::cerr << "no input file name given!\nusage: kicad2sycira <inputnetlist-filename> <outputnetlist-filename>";
         return -1;
     }
-    std::string title = "Kicad2Sycira";
+    std::string title = "Kicad2sycira";
     XMLDocument doc;
     doc.LoadFile(argv[1]);
     if(doc.LoadFile(argv[1]) != XML_SUCCESS)

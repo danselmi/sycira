@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="KiCad2Sycira" />
+		<Option title="KiCad2sycira" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/KiCad2Sycira" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/KiCad2sycira" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -21,7 +21,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/KiCad2Sycira" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/KiCad2sycira" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -43,9 +43,9 @@
 			<Add directory="include" />
 		</Compiler>
 		<Unit filename="include/CreatMaximaSession.h" />
-		<Unit filename="include/KiCad2Sycira.h" />
+		<Unit filename="include/KiCad2sycira.h" />
 		<Unit filename="src/CreatMaximaSession.cpp" />
-		<Unit filename="src/KiCad2Sycira.cpp" />
+		<Unit filename="src/KiCad2sycira.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

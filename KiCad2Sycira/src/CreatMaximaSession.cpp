@@ -5,11 +5,11 @@ int createMaximaSession(const std::string &sessionName, const std::string &circu
 {
     if(checkSessionExists(sessionName))
     {
-        createKicad2SyciraMaximaFile(circuitFileName, data);
+        createKiCad2syciraMaximaFile(circuitFileName, data);
     }
     else
     {
-        createKicad2SyciraMaximaFile(circuitFileName, data);
+        createKiCad2syciraMaximaFile(circuitFileName, data);
         createMinimalSession(sessionName, circuitFileName);
     }
 
@@ -28,7 +28,7 @@ bool checkSessionExists(const std::string & sessionName)
         return false;
 }
 
-int createKicad2SyciraMaximaFile(const std::string &circuitFileName, const std::string &data)
+int createKiCad2syciraMaximaFile(const std::string &circuitFileName, const std::string &data)
 {
     std::ofstream outfile(circuitFileName);
     if (outfile.is_open())
