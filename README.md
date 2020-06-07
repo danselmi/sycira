@@ -23,7 +23,7 @@ sycira supports the following elements:
 - K: coupling between inductors
 
 
-##Tutorial
+## Tutorial
 ### sycira
 We like to get the transferfunction G of the following circuit:
 
@@ -34,14 +34,15 @@ A wxMaxima session would look like this:
 ![simple maxima session](images/tutorial_sycira.png)
 
 After starting maxima or wxMaxima we prepare to have the sycira function available: ```load("sycira");```. Then we have to describe the circuit with a netlist ```ckt:["R_CpR", ... ]```.
-With ```sys:sycira(ckt);```we get a system of euqations for maxima's solver.
+With ```sys:sycira(ckt);```we get a system of equations for maxima's solver.
 Which will be solved by:```sol:solve(sys[1], sys[2]);```
 We get the transferfunction $$G=\frac{v_{out}}{v_{in}}$$ the ratio from the output to the input by ```G:ev(v[out]/v[in],sol[1]);```. and the input impedance "seen" by the source V1 with ```Z_in:ev(v[in]/-i[V1], sol[1]) ```. The negative sign comes from the definition of the current throught the element V1. This is from pin 1 to pin 2 for all element types.
 
 The creation of the netlist is error prone. In the next section we use KiCad to create the netlist and a minimal wxMaxima session.
 
-###KiCad2sycira
-Here we derive the transferfunction of an active multiple feedback low pass filter.
+### KiCad2sycira
+Here we derive the transferfunction of an active multiple feedback low pass filter. 
+<!-- And calculate the element values to realize a butterwoth lowpass filter.-->
 
 #### Preparation
 In KiCad we create a new project and open the schematics editor. Here we have to add the components library with the sycira elements. In the menubar click on "Preferences"->"Manage Symbol Libraries...":
@@ -60,8 +61,9 @@ By default the library is installed in ```/usr/local/share/KiCad2sycira/```.
 ![](images/tutorial_KiCad2sycira_schematics.png)
 
 Remeber to add the 0-symbol. It will define the reference net with the name ```0```.
-The field SymbolicValue is used by sycira as the value used in the equations. Here it is allowed to give algebraic expressions. In this example we just repeated the reference designator. 
+The field SymbolicValue is used by sycira as the value used in the equations. Here it is allowed to give algebraic expressions. In this example we just repeated the reference designator with and underscore to get nice subscripts in wxMaxima. 
 You don't have to define the Value fields. They are used in the numeric simulation integrated in KiCad.
+Using net labels makes it easier to reference a node voltage later on.
  
 #### Generate the netlist and wxMaxima session
 ![generate netlist andmaxima session](images/GenerateNetlist.png)
@@ -86,6 +88,9 @@ To get the transferfunction: ```G:ev(v[out]/v[in], sol[1]);``` This is quite a c
 To simplify this a bit we assume an ideal amplifier ```G:limit(G, A, inf);``` with infinite gain.
 
 ![](images/tutorial_KiCad2sycira_result.png)
+<!-- The poles of a butterwoth filter are given by:
+$$S_P=-\sin{\frac{(2 k - 1)\pi}{2 n}} + j\cdot \cos{\frac{(2 k - 1)\pi}{2 n}}$$ -->
+
 
 
 ## Installation
@@ -100,8 +105,6 @@ However - to simply call `load("sycira")`, you have to add the following line to
 file_search_maxima: append(file_search_maxima, ["/home/username/sycira/###.mac"])$
 ```
 Remember to adjust the path to the corresponding locations on your system.
-
-
 
 ### KiCad2sycira
 #### Build and installation
