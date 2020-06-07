@@ -3,11 +3,11 @@ symbolic circuit analyzer for the Maxima computer algebra system.
 
 With sycira you get easily from a circuit:
 
-![simple example](images/simpleRC.png) 
+![simple example](images/simpleRC.png)
 
 to the equations which describe the circuit:
 
-![simple example](images/simpleRC_GZ.png) 
+![simple example](images/simpleRC_GZ.png)
 
 sycira supports the following elements:
 
@@ -41,30 +41,30 @@ We get the transferfunction $$G=\frac{v_{out}}{v_{in}}$$ the ratio from the outp
 The creation of the netlist is error prone. In the next section we use KiCad to create the netlist and a minimal wxMaxima session.
 
 ### KiCad2sycira
-Here we derive the transferfunction of an active multiple feedback low pass filter. 
+Here we derive the transferfunction of an active multiple feedback low pass filter.
 <!-- And calculate the element values to realize a butterwoth lowpass filter.-->
 
 #### Preparation
 In KiCad we create a new project and open the schematics editor. Here we have to add the components library with the sycira elements. In the menubar click on "Preferences"->"Manage Symbol Libraries...":
 
- ![add Sycira Library](images/AddLibraries.png)
- 
+ ![add sycira Library](images/AddLibraries.png)
+
  We add a project specific library:
- 
+
  ![add project specific library](images/AddProjectSpecificLibrary.png)
- 
+
 By default the library is installed in ```/usr/local/share/KiCad2sycira/```.
 
-![](images/LibraryAdded.png) 
+![](images/LibraryAdded.png)
 
 #### Drawing the schematic
 ![](images/tutorial_KiCad2sycira_schematics.png)
 
 Remeber to add the 0-symbol. It will define the reference net with the name ```0```.
-The field SymbolicValue is used by sycira as the value used in the equations. Here it is allowed to give algebraic expressions. In this example we just repeated the reference designator with and underscore to get nice subscripts in wxMaxima. 
+The field SymbolicValue is used by sycira as the value used in the equations. Here it is allowed to give algebraic expressions. In this example we just repeated the reference designator with and underscore to get nice subscripts in wxMaxima.
 You don't have to define the Value fields. They are used in the numeric simulation integrated in KiCad.
 Using net labels makes it easier to reference a node voltage later on.
- 
+
 #### Generate the netlist and wxMaxima session
 ![generate netlist andmaxima session](images/GenerateNetlist.png)
 
@@ -80,7 +80,7 @@ Now the netlist and wxMaxima session are ready.
 #### Get the desired answers from wxMaxima
 Start wxMaxima by double clicking on the .wxmx file. Or open the file in wxMaxima.
 
-![transferandimpedance](images/tutorial_KiCad2sycira_maxima.png) 
+![transferandimpedance](images/tutorial_KiCad2sycira_maxima.png)
 
 Press Ctrl+R to evaluate all Cells. (Or in the menu "Cell"->"Evaluate All Cells"). Maxima just calculated all element currents and node voltages!
 
@@ -96,7 +96,7 @@ $$S_P=-\sin{\frac{(2 k - 1)\pi}{2 n}} + j\cdot \cos{\frac{(2 k - 1)\pi}{2 n}}$$ 
 ## Installation
 ### sycira
 sycira is based on the computer algebra system Maxima. This has to be installed to be able to use sycira.
-There is no need to install Sycira. You can load the package by giving the full path, for example:
+There is no need to install sycira. You can load the package by giving the full path, for example:
 ```
 load("/home/username/sycira/sycira.mac");
 ```
@@ -127,13 +127,13 @@ cd KiCad2sycira
 make
 sudo make install
 ```
-Default location is ```/usr/loca/```, which can be changed by the he ```PREFIX``` environment variable. 
+Default location is ```/usr/loca/```, which can be changed by the he ```PREFIX``` environment variable.
 Make sure ```$PREFIX/bin/``` is in the PATH.
 
 #### Configuration of KiCad
-After successfully installing KiCad2Sycira open KiCad's Eeschema and go to Generate Netlist
+After successfully installing KiCad2sycira open KiCad's Eeschema and go to Generate Netlist
 
- ![add KiCad2Sycira plugin](images/GenerateNetlist.png)
+ ![add KiCad2sycira plugin](images/GenerateNetlist.png)
 
 Click "Add Plugin...". As Netlist command use the following:
 ```
@@ -144,4 +144,4 @@ Choose ```KiCad2sycira``` as the name. Afterwards click on "OK".
 ![Netlist command](images/AddPlugin.png)
 
 
-    
+
