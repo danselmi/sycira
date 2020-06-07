@@ -73,14 +73,14 @@ Choose KiCad2sycira and click "Generate Netlist":
 ![genNetlistDialog](images/GenerateNetlistDialog.png)
 
 Choose a filename. The filename is used for [name].mac containing the netlist and [name].wxmx containing the  wxMaxima session.
-If the session and the netlsit file already exists, then only the netlist file will be overwritten. This is usefull if you like to change the circuit without loosing all inputs in the maxima session.
+If the session and the netlist file already exists, then only the netlist file will be overwritten. This is usefull if you like to change the circuit without loosing all inputs in the maxima session.
 If not all elements have annotations KiCad will ask how to generate them.
 Now the netlist and wxMaxima session are ready.
 
 #### Get the desired answers from wxMaxima
-Start wxMaxima by double clicking on the .wxmx. Or open the file in wxMaxima.
+Start wxMaxima by double clicking on the .wxmx file. Or open the file in wxMaxima.
 
-![transferand ](images/tutorial_KiCad2sycira_maxima.png) 
+![transferandimpedance](images/tutorial_KiCad2sycira_maxima.png) 
 
 Press Ctrl+R to evaluate all Cells. (Or in the menu "Cell"->"Evaluate All Cells"). Maxima just calculated all element currents and node voltages!
 
