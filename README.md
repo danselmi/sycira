@@ -123,11 +123,11 @@ sudo apt install git make g++ libtinyxml2-dev libzip-dev #build
 ```
 When these dependencies are ready KiCad2sycira can be built and installed with:
 ```
-cd KiCad2sycira
+cd sycira/KiCad2sycira
 make
 sudo make install
 ```
-Default location is ```/usr/loca/```, which can be changed by the he ```PREFIX``` environment variable.
+Default location is ```/usr/local/```, which can be changed by the he ```PREFIX``` environment variable.
 Make sure ```$PREFIX/bin/``` is in the PATH.
 
 #### Configuration of KiCad
