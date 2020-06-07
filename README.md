@@ -139,7 +139,7 @@ Click "Add Plugin...". As Netlist command use the following:
 ```
 KiCad2sycira %I %O
 ```
-Choose ```KiCad2sycira``` as the name. Afterwards click on "OK".
+Choose ```KiCad2sycira``` as the Name. Afterwards click on "OK".
 
 ![Netlist command](images/AddPlugin.png)
 
