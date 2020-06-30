@@ -13,7 +13,7 @@ sycira supports the following elements:
 
 ![supported elements](images/elements.png)
 
-- V and I: independant voltage and current sources
+- V and I: independent voltage and current sources
 - R, L, C: common passive elements: resistor, inductors and capacitors
 - Controlled sources:
     - E: VCVS (voltage controlled voltage source)
@@ -36,7 +36,7 @@ A wxMaxima session would look like this:
 After starting maxima or wxMaxima we prepare to have the sycira function available: ```load("sycira");```. Then we have to describe the circuit with a netlist ```ckt:["R_CpR", ... ]```.
 With ```sys:sycira(ckt);```we get a system of equations for maxima's solver.
 Which will be solved by:```sol:solve(sys[1], sys[2]);```
-We get the transferfunction $$G=\frac{v_{out}}{v_{in}}$$ the ratio from the output to the input by ```G:ev(v[out]/v[in],sol[1]);```. and the input impedance "seen" by the source V1 with ```Z_in:ev(v[in]/-i[V1], sol[1]) ```. The negative sign comes from the definition of the current throught the element V1. This is from pin 1 to pin 2 for all element types.
+We get the transferfunction G=(v_out)/(v_in) the ratio from the output to the input by ```G:ev(v[out]/v[in],sol[1]);```. and the input impedance "seen" by the source V1 with ```Z_in:ev(v[in]/-i[V1], sol[1]) ```. The negative sign comes from the definition of the current throught the element V1. This is from pin 1 to pin 2 for all element types.
 
 The creation of the netlist is error prone. In the next section we use KiCad to create the netlist and a minimal wxMaxima session.
 
