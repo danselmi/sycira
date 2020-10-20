@@ -6,13 +6,13 @@ symbolic circuit analyzer for the Maxima computer algebra system.
      * [sycira](#sycira-1)
      * [KiCad2sycira](#kicad2sycira)
          * [Preparation](#preparation)
-         * [Drawing the schemeatic](#drawing-the-schemetic)
+         * [Drawing the schematic](#drawing-the-schematic)
          * [Generate the netlist and wxMaxima session](#generate-the-netlist-and-wxmaxima-session)
          * [Get the desired answers from wxMaxima](#get-the-desired-answers-from-wxmaxima)
  * [Installation](#installation)
      * [sycira](#sycira-2)
      * [KiCad2sycira](#kicad2sycira-1)
-         * [Build and installeiotn](#build-and-installation)
+         * [Build and installation](#build-and-installation)
          * [Configuration of KiCad](#configuration-of-kicad)
 ## Introduction
 With sycira you get easily from a circuit:
