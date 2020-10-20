@@ -1,6 +1,20 @@
 # sycira
 symbolic circuit analyzer for the Maxima computer algebra system.
-
+## Table of contents
+* [Introduction](#introduction)
+* [Tutorial](#tutorial)
+     * [sycira](#sycira-1)
+     * [KiCad2sycira](#kicad2sycira)
+         * [Preparation](#preparation)
+         * [Drawing the schemeatic](#drawing-the-schemetic)
+         * [Generate the netlist and wxMaxima session](#generate-the-netlist-and-wxmaxima-session)
+         * [Get the desired answers from wxMaxima](#get-the-desired-answers-from-wxmaxima)
+ * [Installation](#installation)
+     * [sycira](#sycira-2)
+     * [KiCad2sycira](#kicad2sycira-1)
+         * [Build and installeiotn](#build-and-installation)
+         * [Configuration of KiCad](#configuration-of-kicad)
+## Introduction
 With sycira you get easily from a circuit:
 
 ![simple example](images/simpleRC.png)
@@ -100,7 +114,7 @@ There is no need to install sycira. You can load the package by giving the full 
 ```
 load("/home/username/sycira/sycira.mac");
 ```
-However - to simply call `load("sycira")`, you have to add the following line to your `maxima-init.mac` file.
+However - to simply call `load("sycira")`, you have to add the following line to your `/home/username/.maxima/maxima-init.mac` file (just create it if it does not exist yet).
 ```
 file_search_maxima: append(file_search_maxima, ["/home/username/sycira/###.mac"])$
 ```
